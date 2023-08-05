@@ -2,12 +2,12 @@ package user
 
 import (
 	"fmt"
-	"gam-app/entity"
-	"gam-app/pkg/phonenumber"
+	"game-app/entity"
+	"game-app/pkg/phonenumber"
 )
 
 type repository interface {
-	isPhoneNumberUnique(phoneNumber string) (bool, error)
+	IsPhoneNumberUnique(phoneNumber string) (bool, error)
 	RegisterUser(user entity.User) (entity.User, error)
 }
 
@@ -24,6 +24,10 @@ type RegisterResponse struct {
 	User entity.User
 }
 
+func New(repo repository) *Service {
+	return &Service{repo: repo}
+}
+
 func (s Service) Register(req RegisterRequest) (RegisterResponse, error) {
 	//TODO - we should verify phone number by verification code
 	// validate phone number
@@ -32,7 +36,7 @@ func (s Service) Register(req RegisterRequest) (RegisterResponse, error) {
 	}
 
 	//check uniqueness of phone number
-	if isUnique, err := s.repo.isPhoneNumberUnique(req.PhoneNumber); err != nil || !isUnique {
+	if isUnique, err := s.repo.IsPhoneNumberUnique(req.PhoneNumber); err != nil || !isUnique {
 		if err != nil {
 			return RegisterResponse{}, fmt.Errorf("unexpected error: %w", err)
 		}
@@ -50,7 +54,7 @@ func (s Service) Register(req RegisterRequest) (RegisterResponse, error) {
 	createdUser, err := s.repo.RegisterUser(entity.User{
 		ID:          0,
 		PhoneNumber: req.PhoneNumber,
-		Name:        req.PhoneNumber,
+		Name:        req.Name,
 	})
 
 	if err != nil {
