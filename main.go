@@ -46,7 +46,7 @@ func userRegisterHandler(writer http.ResponseWriter, req *http.Request) {
 		writer.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, rErr.Error())))
 		return
 	}
-	writer.Write([]byte(`{"message:" : "user created"`))
+	writer.Write([]byte(`{"message:" : "user created"}`))
 }
 
 func healthCheckHandler(writer http.ResponseWriter, req *http.Request) {

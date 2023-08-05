@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"game-app/entity"
 	"game-app/pkg/phonenumber"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type repository interface {
@@ -16,8 +17,9 @@ type Service struct {
 }
 
 type RegisterRequest struct {
-	Name        string
-	PhoneNumber string
+	Name        string `json:"name"`
+	PhoneNumber string `json:"phone_number"`
+	Password    string `json:"password"`
 }
 
 type RegisterResponse struct {
@@ -30,6 +32,7 @@ func New(repo repository) *Service {
 
 func (s Service) Register(req RegisterRequest) (RegisterResponse, error) {
 	//TODO - we should verify phone number by verification code
+
 	// validate phone number
 	if !phonenumber.IsValid(req.PhoneNumber) {
 		return RegisterResponse{}, fmt.Errorf("phone number is not valid")
@@ -50,11 +53,21 @@ func (s Service) Register(req RegisterRequest) (RegisterResponse, error) {
 		return RegisterResponse{}, fmt.Errorf("name length should be greater than 3")
 	}
 
+	//TODO - check the password with regex pattern
+	//validate password
+	if len(req.Password) < 8 {
+		return RegisterResponse{}, fmt.Errorf("password length should be greater than 8")
+	}
+
+	pass := []byte(req.Password)
+	hashedPass, err := bcrypt.GenerateFromPassword(pass, bcrypt.DefaultCost)
+
 	//create new user in storage
 	createdUser, err := s.repo.RegisterUser(entity.User{
 		ID:          0,
 		PhoneNumber: req.PhoneNumber,
 		Name:        req.Name,
+		Password:    string(hashedPass),
 	})
 
 	if err != nil {
@@ -64,4 +77,21 @@ func (s Service) Register(req RegisterRequest) (RegisterResponse, error) {
 	//return created user
 	return RegisterResponse{createdUser}, nil
 
+}
+
+type LoginRequest struct {
+	PhoneNumber string
+	Password    string
+}
+
+type LoginResponse struct {
+}
+
+func (s Service) Login(req LoginRequest) (LoginResponse, error) {
+	// check the existence of phone number in repository
+
+	//get the user by phone number
+
+	//compare user.Password with req.Passwor d
+	panic("implement me")
 }
