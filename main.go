@@ -14,11 +14,10 @@ import (
 func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/users/register", userRegisterHandler)
+	mux.HandleFunc("/users/login", userLoginHandler)
 	mux.HandleFunc("/health-check", healthCheckHandler)
 	server := http.Server{Addr: ":8080", Handler: mux}
 	log.Fatalln(server.ListenAndServe())
-
-	TestUserMysqlRepo()
 
 }
 func userRegisterHandler(writer http.ResponseWriter, req *http.Request) {
@@ -74,4 +73,33 @@ func TestUserMysqlRepo() {
 
 	fmt.Println("is unique", isUnique)
 
+}
+
+func userLoginHandler(writer http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodPost {
+		fmt.Fprintf(writer, `{"error": "invalid method"}`)
+	}
+
+	data, err := io.ReadAll(req.Body)
+	if err != nil {
+		writer.Write([]byte(fmt.Sprintf(`{"error"": "%s"}`, err.Error())))
+		return
+	}
+
+	var lReq user.LoginRequest
+	err = json.Unmarshal(data, &lReq)
+	if err != nil {
+		writer.Write([]byte(fmt.Sprintf(`{"error"": "%s"}`, err.Error())))
+		return
+	}
+
+	mysqlRepo := mysql.New()
+	userSvc := user.New(mysqlRepo)
+
+	_, rErr := userSvc.Login(lReq)
+	if rErr != nil {
+		writer.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, rErr.Error())))
+		return
+	}
+	writer.Write([]byte(`{"message:" : "user credential is ok"}`))
 }

@@ -10,6 +10,7 @@ import (
 type repository interface {
 	IsPhoneNumberUnique(phoneNumber string) (bool, error)
 	RegisterUser(user entity.User) (entity.User, error)
+	GetUserByPhoneNumber(phoneNumber string) (entity.User, bool, error)
 }
 
 type Service struct {
@@ -80,18 +81,31 @@ func (s Service) Register(req RegisterRequest) (RegisterResponse, error) {
 }
 
 type LoginRequest struct {
-	PhoneNumber string
-	Password    string
+	PhoneNumber string `json:"phone_number"`
+	Password    string `json:"password"`
 }
 
 type LoginResponse struct {
 }
 
 func (s Service) Login(req LoginRequest) (LoginResponse, error) {
+	// TODO it's better to have separate methods for checking user existence and getting user by phone number
 	// check the existence of phone number in repository
-
 	//get the user by phone number
 
-	//compare user.Password with req.Passwor d
-	panic("implement me")
+	user, exist, err := s.repo.GetUserByPhoneNumber(req.PhoneNumber)
+	if err != nil {
+		return LoginResponse{}, fmt.Errorf("unexpected error: %w", err)
+	}
+	if !exist {
+		return LoginResponse{}, fmt.Errorf("username or password is not correct")
+	}
+
+	//compare user.Password with req.Password
+
+	if hErr := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); hErr != nil {
+		return LoginResponse{}, fmt.Errorf("username or password is not correct")
+
+	}
+	return LoginResponse{}, err
 }
