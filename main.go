@@ -11,10 +11,15 @@ import (
 	"net/http"
 )
 
+const (
+	jwtSignKey = "jwt_secret"
+)
+
 func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/users/register", userRegisterHandler)
 	mux.HandleFunc("/users/login", userLoginHandler)
+	mux.HandleFunc("/users/profile", userProfileHandler)
 	mux.HandleFunc("/health-check", healthCheckHandler)
 	server := http.Server{Addr: ":8080", Handler: mux}
 	log.Fatalln(server.ListenAndServe())
@@ -38,7 +43,7 @@ func userRegisterHandler(writer http.ResponseWriter, req *http.Request) {
 	}
 
 	mysqlRepo := mysql.New()
-	userSvc := user.New(mysqlRepo)
+	userSvc := user.New(mysqlRepo, jwtSignKey)
 
 	_, rErr := userSvc.Register(uReq)
 	if rErr != nil {
@@ -94,12 +99,59 @@ func userLoginHandler(writer http.ResponseWriter, req *http.Request) {
 	}
 
 	mysqlRepo := mysql.New()
-	userSvc := user.New(mysqlRepo)
+	userSvc := user.New(mysqlRepo, jwtSignKey)
 
-	_, rErr := userSvc.Login(lReq)
+	resp, rErr := userSvc.Login(lReq)
 	if rErr != nil {
 		writer.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, rErr.Error())))
+
 		return
 	}
-	writer.Write([]byte(`{"message:" : "user credential is ok"}`))
+	var rData []byte
+	rData, err = json.Marshal(resp)
+	if err != nil {
+		writer.Write([]byte(fmt.Sprintf(`{"error"": "%s"}`, err.Error())))
+
+		return
+	}
+
+	writer.Write(rData)
+}
+
+func userProfileHandler(writer http.ResponseWriter, req *http.Request) {
+	var data []byte
+	var rData []byte
+	if req.Method != http.MethodGet {
+		fmt.Fprintf(writer, `{"error": "invalid method"}`)
+	}
+	var pReq user.ProfileRequest
+	data, err := io.ReadAll(req.Body)
+	if err != nil {
+		writer.Write([]byte(fmt.Sprintf(`{"error"": "%s"}`, err.Error())))
+		return
+	}
+	err = json.Unmarshal(data, &pReq)
+	if err != nil {
+		writer.Write([]byte(fmt.Sprintf(`{"error"": "%s"}`, err.Error())))
+		return
+	}
+
+	mysqlRepo := mysql.New()
+	userSvc := user.New(mysqlRepo, jwtSignKey)
+
+	resp, err := userSvc.Profile(pReq)
+	if err != nil {
+		writer.Write([]byte(fmt.Sprintf(`{"error"": "%s"}`, err.Error())))
+
+		return
+	}
+
+	rData, err = json.Marshal(resp)
+	if err != nil {
+		writer.Write([]byte(fmt.Sprintf(`{"error"": "%s"}`, err.Error())))
+		return
+	}
+
+	writer.Write(rData)
+
 }
