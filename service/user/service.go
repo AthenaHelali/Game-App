@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"game-app/entity"
 	"game-app/pkg/phonenumber"
-	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
-	"time"
 )
 
 type repository interface {
@@ -15,10 +13,14 @@ type repository interface {
 	GetUserByPhoneNumber(phoneNumber string) (entity.User, bool, error)
 	GetUserByID(UserID uint) (entity.User, error)
 }
+type AuthGenerator interface {
+	CreateAccessToken(user entity.User) (string, error)
+	CreateRefreshToken(user entity.User) (string, error)
+}
 
 type Service struct {
-	signKey string
-	repo    repository
+	auth AuthGenerator
+	repo repository
 }
 
 type RegisterRequest struct {
@@ -31,8 +33,8 @@ type RegisterResponse struct {
 	User entity.User
 }
 
-func New(repo repository, jwtSignKey string) *Service {
-	return &Service{repo: repo, signKey: jwtSignKey}
+func New(authGenerator AuthGenerator, repo repository) *Service {
+	return &Service{auth: authGenerator, repo: repo}
 }
 
 func (s Service) Register(req RegisterRequest) (RegisterResponse, error) {
@@ -90,7 +92,8 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	AccessToken string `json:"access_token"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 func (s Service) Login(req LoginRequest) (LoginResponse, error) {
@@ -112,11 +115,16 @@ func (s Service) Login(req LoginRequest) (LoginResponse, error) {
 		return LoginResponse{}, fmt.Errorf("username or password is not correct")
 
 	}
-	token, tErr := createToken(user.ID, s.signKey)
+	accessToken, tErr := s.auth.CreateAccessToken(user)
 	if tErr != nil {
 		return LoginResponse{}, fmt.Errorf("unexpected error:%w", tErr)
 	}
-	return LoginResponse{token}, err
+	refreshToken, tErr := s.auth.CreateRefreshToken(user)
+	if tErr != nil {
+		return LoginResponse{}, fmt.Errorf("unexpected error:%w", tErr)
+	}
+
+	return LoginResponse{AccessToken: accessToken, RefreshToken: refreshToken}, nil
 }
 
 type ProfileRequest struct {
@@ -135,57 +143,4 @@ func (s Service) Profile(req ProfileRequest) (ProfileResponse, error) {
 	}
 	return ProfileResponse{Name: user.Name}, err
 
-}
-
-type Claims struct {
-	RegisteredClaims jwt.RegisteredClaims
-	UserID           uint
-}
-
-func (c Claims) GetExpirationTime() (*jwt.NumericDate, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (c Claims) GetIssuedAt() (*jwt.NumericDate, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (c Claims) GetNotBefore() (*jwt.NumericDate, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (c Claims) GetIssuer() (string, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (c Claims) GetSubject() (string, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (c Claims) GetAudience() (jwt.ClaimStrings, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (c Claims) valid() error {
-	return nil
-}
-
-func createToken(userID uint, signKey string) (string, error) {
-	// TODO -   replace with rsa 256 RS256
-
-	claims := &Claims{
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * 7)),
-		},
-		UserID: userID,
-	}
-	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := accessToken.SignedString([]byte(signKey))
-	return tokenString, err
 }
