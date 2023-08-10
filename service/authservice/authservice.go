@@ -8,36 +8,35 @@ import (
 	"time"
 )
 
+type Config struct {
+	SignKey               string
+	AccessSubject         string
+	RefreshSubject        string
+	AccessExpirationTime  time.Duration
+	RefreshExpirationTime time.Duration
+}
 type Service struct {
-	signKey               string
-	accessSubject         string
-	refreshSubject        string
-	accessExpirationTime  time.Duration
-	refreshExpirationTime time.Duration
+	config Config
 }
 
-func New(signKey, accessSubject, refreshSubject string, accessExpirationTime, refreshExpirationTime time.Duration) Service {
+func New(cfg Config) Service {
 	return Service{
-		signKey:               signKey,
-		accessSubject:         accessSubject,
-		refreshSubject:        refreshSubject,
-		accessExpirationTime:  accessExpirationTime,
-		refreshExpirationTime: refreshExpirationTime,
+		config: cfg,
 	}
 
 }
 
 func (s Service) CreateAccessToken(user entity.User) (string, error) {
-	return s.createToken(s.accessSubject, user.ID, s.accessExpirationTime)
+	return s.createToken(s.config.AccessSubject, user.ID, s.config.AccessExpirationTime)
 }
 func (s Service) CreateRefreshToken(user entity.User) (string, error) {
-	return s.createToken(s.refreshSubject, user.ID, s.refreshExpirationTime)
+	return s.createToken(s.config.RefreshSubject, user.ID, s.config.RefreshExpirationTime)
 
 }
 func (s Service) ParseToken(bearerToken string) (*Claims, error) {
 	tokenStr := strings.Replace(bearerToken, "Bearer ", "", 1)
 	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(s.signKey), nil
+		return []byte(s.config.SignKey), nil
 	})
 
 	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
@@ -58,6 +57,6 @@ func (s Service) createToken(subject string, userID uint, expiresAtDuration time
 		UserID: userID,
 	}
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := accessToken.SignedString([]byte(s.signKey))
+	tokenString, err := accessToken.SignedString([]byte(s.config.SignKey))
 	return tokenString, err
 }

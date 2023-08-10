@@ -1,15 +1,11 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"game-app/entity"
+	"game-app/config"
+	"game-app/delivery/httpserver"
 	"game-app/repository/mysql"
 	"game-app/service/authservice"
 	"game-app/service/user"
-	"io"
-	"log"
-	"net/http"
 	"time"
 )
 
@@ -22,47 +18,32 @@ const (
 )
 
 func main() {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/users/register", userRegisterHandler)
-	mux.HandleFunc("/users/login", userLoginHandler)
-	mux.HandleFunc("/users/profile", userProfileHandler)
-	mux.HandleFunc("/health-check", healthCheckHandler)
-	server := http.Server{Addr: ":8080", Handler: mux}
-	log.Fatalln(server.ListenAndServe())
 
-}
-func userRegisterHandler(writer http.ResponseWriter, req *http.Request) {
-	if req.Method != http.MethodPost {
-		fmt.Fprintf(writer, `{"error": "invalid method"}`)
+	cfg := config.Config{
+		HTTPServer: config.HTTPServer{Port: 8088},
+		Auth: authservice.Config{
+			SignKey:               jwtSignKey,
+			AccessSubject:         AccessTokenSubject,
+			RefreshSubject:        RefreshTokenSubject,
+			AccessExpirationTime:  AccessTokenExpireDuration,
+			RefreshExpirationTime: RefreshTokenExpireDuration,
+		},
+		Mysql: mysql.Config{
+			Username: "gameapp",
+			Password: "gameappt0lk2o20",
+			Port:     3308,
+			Host:     "localhost",
+			DNName:   "gameapp_db",
+		},
 	}
-	data, err := io.ReadAll(req.Body)
-	if err != nil {
-		writer.Write([]byte(fmt.Sprintf(`{"error"": "%s"}`, err.Error())))
-		return
-	}
+	authSvc, userSvc := setupServices(cfg)
 
-	var uReq user.RegisterRequest
-	err = json.Unmarshal(data, &uReq)
-	if err != nil {
-		writer.Write([]byte(fmt.Sprintf(`{"error"": "%s"}`, err.Error())))
-		return
-	}
-	authSvc := authservice.New(jwtSignKey, AccessTokenSubject, RefreshTokenSubject, AccessTokenExpireDuration, RefreshTokenExpireDuration)
-	mysqlRepo := mysql.New()
-	userSvc := user.New(authSvc, mysqlRepo)
+	server := httpserver.New(cfg, authSvc, userSvc)
 
-	_, rErr := userSvc.Register(uReq)
-	if rErr != nil {
-		writer.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, rErr.Error())))
-		return
-	}
-	writer.Write([]byte(`{"message:" : "user created"}`))
+	server.Serve()
 }
 
-func healthCheckHandler(writer http.ResponseWriter, req *http.Request) {
-	fmt.Fprintf(writer, `{"message": "everything is good!"}`)
-}
-func TestUserMysqlRepo() {
+/*func TestUserMysqlRepo() {
 	mysqlRepo := mysql.New()
 
 	createdUser, err := mysqlRepo.RegisterUser(entity.User{
@@ -153,5 +134,14 @@ func userProfileHandler(writer http.ResponseWriter, req *http.Request) {
 	}
 
 	writer.Write(rData)
+
+}*/
+
+func setupServices(cfg config.Config) (authservice.Service, user.Service) {
+	authSvc := authservice.New(cfg.Auth)
+	MysqlRepo := mysql.New(cfg.Mysql)
+	userSvc := user.New(authSvc, MysqlRepo)
+
+	return authSvc, *userSvc
 
 }
