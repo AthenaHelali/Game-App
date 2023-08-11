@@ -23,6 +23,11 @@ type Service struct {
 	repo repository
 }
 
+type UserInfo struct {
+	ID          uint   `json:"id"`
+	PhoneNumber string `json:"phone_number"`
+	Name        string `json:"name"`
+}
 type RegisterRequest struct {
 	Name        string `json:"name"`
 	PhoneNumber string `json:"phone_number"`
@@ -30,11 +35,7 @@ type RegisterRequest struct {
 }
 
 type RegisterResponse struct {
-	User struct {
-		ID          uint   `json:"id"`
-		PhoneNumber string `json:"phone_number"`
-		Name        string `json:"name"`
-	} `json:"user"`
+	User UserInfo `json:"user"`
 }
 
 func New(authGenerator AuthGenerator, repo repository) *Service {
@@ -93,18 +94,23 @@ func (s Service) Register(req RegisterRequest) (RegisterResponse, error) {
 	return resp, nil
 }
 
+type Tokens struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+}
+
 type LoginRequest struct {
 	PhoneNumber string `json:"phone_number"`
 	Password    string `json:"password"`
 }
 
 type LoginResponse struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
+	User  UserInfo `json:"user"`
+	Token Tokens   `json:"token"`
 }
 
 func (s Service) Login(req LoginRequest) (LoginResponse, error) {
-	// TODO it's better to have separate methods for checking user existence and getting user by phone number
+	// TODO - it's better to have separate methods for checking user existence and getting user by phone number
 	// check the existence of phone number in repository
 	//get the user by phone number
 
@@ -131,7 +137,18 @@ func (s Service) Login(req LoginRequest) (LoginResponse, error) {
 		return LoginResponse{}, fmt.Errorf("unexpected error:%w", tErr)
 	}
 
-	return LoginResponse{AccessToken: accessToken, RefreshToken: refreshToken}, nil
+	response := LoginResponse{
+		User: UserInfo{
+			ID:          user.ID,
+			PhoneNumber: user.PhoneNumber,
+			Name:        user.Name},
+		Token: Tokens{
+			AccessToken:  accessToken,
+			RefreshToken: refreshToken,
+		},
+	}
+
+	return response, nil
 }
 
 type ProfileRequest struct {
