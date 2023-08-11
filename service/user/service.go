@@ -5,6 +5,7 @@ import (
 	"game-app/entity"
 	"game-app/pkg/phonenumber"
 	"golang.org/x/crypto/bcrypt"
+	"time"
 )
 
 type repository interface {
@@ -24,9 +25,10 @@ type Service struct {
 }
 
 type UserInfo struct {
-	ID          uint   `json:"id"`
-	PhoneNumber string `json:"phone_number"`
-	Name        string `json:"name"`
+	ID          uint      `json:"id"`
+	PhoneNumber string    `json:"phone_number"`
+	Name        string    `json:"name"`
+	CreatedAt   time.Time `json:"created_at"`
 }
 type RegisterRequest struct {
 	Name        string `json:"name"`
@@ -119,13 +121,13 @@ func (s Service) Login(req LoginRequest) (LoginResponse, error) {
 		return LoginResponse{}, fmt.Errorf("unexpected error: %w", err)
 	}
 	if !exist {
-		return LoginResponse{}, fmt.Errorf("username or password is not correct")
+		return LoginResponse{}, fmt.Errorf("username is not correct")
 	}
 
 	//compare user.Password with req.Password
 
 	if hErr := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); hErr != nil {
-		return LoginResponse{}, fmt.Errorf("username or password is not correct")
+		return LoginResponse{}, fmt.Errorf("password is not correct")
 
 	}
 	accessToken, tErr := s.auth.CreateAccessToken(user)
