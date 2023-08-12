@@ -5,21 +5,24 @@ import (
 	"game-app/config"
 	"game-app/service/authservice"
 	"game-app/service/user"
+	"game-app/validator/uservalidator"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
 type Server struct {
-	config  config.Config
-	authSvc authservice.Service
-	userSvc user.Service
+	config        config.Config
+	authSvc       authservice.Service
+	userSvc       user.Service
+	userValidator uservalidator.Validator
 }
 
-func New(config config.Config, authSvc authservice.Service, userSvc user.Service) Server {
+func New(config config.Config, authSvc authservice.Service, userSvc user.Service, userValidator uservalidator.Validator) Server {
 	return Server{
-		config:  config,
-		authSvc: authSvc,
-		userSvc: userSvc,
+		config:        config,
+		authSvc:       authSvc,
+		userSvc:       userSvc,
+		userValidator: userValidator,
 	}
 }
 

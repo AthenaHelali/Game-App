@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"game-app/dto"
 	"game-app/pkg/httpmsg"
 	"game-app/service/user"
 	"github.com/labstack/echo/v4"
@@ -8,10 +9,14 @@ import (
 )
 
 func (s Server) userRegister(c echo.Context) error {
-	var uReq user.RegisterRequest
+	var uReq dto.RegisterRequest
 
 	if err := c.Bind(&uReq); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "cant bind request")
+	}
+	if err := s.userValidator.ValidateRegisterRequest(uReq); err != nil {
+		msg, code := httpmsg.HTTPCodeAndMessage(err)
+		return echo.NewHTTPError(code, msg)
 	}
 
 	response, err := s.userSvc.Register(uReq)

@@ -17,7 +17,7 @@ func (d *MysqlDB) IsPhoneNumberUnique(phoneNumber string) (bool, error) {
 			return true, nil
 		}
 
-		return false, fmt.Errorf("can't scan query result: %w", err)
+		return false, richerror.New("mysql.IsPhoneNumberUnique").WithError(err).WithMessage(errormessage.ErrorMsgCantScanQueryResult).WithKind(richerror.KindUnexpected)
 	}
 	return false, nil
 }
