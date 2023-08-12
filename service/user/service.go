@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"game-app/entity"
 	"game-app/pkg/phonenumber"
+	"game-app/pkg/richerror"
 	"golang.org/x/crypto/bcrypt"
 	"time"
 )
@@ -115,13 +116,13 @@ func (s Service) Login(req LoginRequest) (LoginResponse, error) {
 	// TODO - it's better to have separate methods for checking user existence and getting user by phone number
 	// check the existence of phone number in repository
 	//get the user by phone number
-
+	const op = "userservice.login"
 	user, exist, err := s.repo.GetUserByPhoneNumber(req.PhoneNumber)
 	if err != nil {
-		return LoginResponse{}, fmt.Errorf("unexpected error: %w", err)
+		return LoginResponse{}, richerror.New(op).WithError(err).WithMeta(map[string]interface{}{"phone_number": req.PhoneNumber})
 	}
 	if !exist {
-		return LoginResponse{}, fmt.Errorf("username is not correct")
+		return LoginResponse{}, fmt.Errorf("username or password is not correct")
 	}
 
 	//compare user.Password with req.Password
@@ -162,10 +163,11 @@ type ProfileResponse struct {
 
 // Profile all request inputs for service should be sanitized.
 func (s Service) Profile(req ProfileRequest) (ProfileResponse, error) {
+	const op = "userservice.Profile"
 	// getUserByID
 	user, err := s.repo.GetUserByID(req.UserID)
 	if err != nil {
-		return ProfileResponse{}, fmt.Errorf("unexpected error: %w", err)
+		return ProfileResponse{}, richerror.New(op).WithError(err).WithMeta(map[string]interface{}{"request": req})
 	}
 	return ProfileResponse{Name: user.Name}, err
 
