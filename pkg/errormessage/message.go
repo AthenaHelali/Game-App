@@ -5,4 +5,5 @@ const (
 	ErrorMsgCantScanQueryResult    = "cant scan query result"
 	ErrorMsgPhoneNumberIsNotUnique = "phone number is not unique"
 	ErrorMsgInvalidInput           = "invalid input"
+	ErrorMsgPhoneNumberIsNotValid  = "phone number is not valid"
 )

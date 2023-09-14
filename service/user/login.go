@@ -12,12 +12,9 @@ func (s Service) Login(req dto.LoginRequest) (dto.LoginResponse, error) {
 	// check the existence of phone number in repository
 	//get the user by phone number
 	const op = "userservice.login"
-	user, exist, err := s.repo.GetUserByPhoneNumber(req.PhoneNumber)
+	user, err := s.repo.GetUserByPhoneNumber(req.PhoneNumber)
 	if err != nil {
 		return dto.LoginResponse{}, richerror.New(op).WithError(err).WithMeta(map[string]interface{}{"phone_number": req.PhoneNumber})
-	}
-	if !exist {
-		return dto.LoginResponse{}, fmt.Errorf("username or password is not correct")
 	}
 
 	//compare user.Password with req.Password
