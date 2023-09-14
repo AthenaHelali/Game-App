@@ -2,12 +2,12 @@ package user
 
 import (
 	"fmt"
-	"game-app/dto"
 	"game-app/entity"
+	"game-app/param"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (s Service) Register(req dto.RegisterRequest) (dto.RegisterResponse, error) {
+func (s Service) Register(req param.RegisterRequest) (param.RegisterResponse, error) {
 	//TODO - we should verify phone number by verification code
 
 	pass := []byte(req.Password)
@@ -22,9 +22,9 @@ func (s Service) Register(req dto.RegisterRequest) (dto.RegisterResponse, error)
 	})
 
 	if err != nil {
-		return dto.RegisterResponse{}, fmt.Errorf("unexpected error: %w", err)
+		return param.RegisterResponse{}, fmt.Errorf("unexpected error: %w", err)
 	}
-	var resp dto.RegisterResponse
+	var resp param.RegisterResponse
 	resp.User.ID = createdUser.ID
 	resp.User.Name = createdUser.Name
 	resp.User.PhoneNumber = createdUser.PhoneNumber

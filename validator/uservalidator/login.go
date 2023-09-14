@@ -2,14 +2,14 @@ package uservalidator
 
 import (
 	"fmt"
-	"game-app/dto"
+	"game-app/param"
 	"game-app/pkg/errormessage"
 	"game-app/pkg/richerror"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"regexp"
 )
 
-func (v Validator) ValidateLoginRequest(req dto.LoginRequest) error {
+func (v Validator) ValidateLoginRequest(req param.LoginRequest) error {
 	const op = "uservalidator.ValidateLoginRequest"
 
 	if err := validation.ValidateStruct(&req,

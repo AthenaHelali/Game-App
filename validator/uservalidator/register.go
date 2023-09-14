@@ -2,14 +2,14 @@ package uservalidator
 
 import (
 	"fmt"
-	"game-app/dto"
+	"game-app/param"
 	"game-app/pkg/errormessage"
 	"game-app/pkg/richerror"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"regexp"
 )
 
-func (v Validator) ValidateRegisterRequest(req dto.RegisterRequest) error {
+func (v Validator) ValidateRegisterRequest(req param.RegisterRequest) error {
 	const op = "uservalidator.ValidateRegisterRequest"
 
 	if err := validation.ValidateStruct(&req,
@@ -19,10 +19,9 @@ func (v Validator) ValidateRegisterRequest(req dto.RegisterRequest) error {
 
 		validation.Field(&req.PhoneNumber, validation.Required,
 			validation.Match(regexp.MustCompile(IRPhoneNumberRegex)).
-				Error(errormessage.ErrorMsgPhoneNumberIsNotValid),
+				Error(errormessage.ErrorMsgPhoneNumberIsNotUnique),
 			validation.By(v.checkPhoneNumberUniqueness)),
 	); err != nil {
-		fmt.Println(err.Error())
 		return richerror.New(op).WithError(err).WithMeta(map[string]interface{}{"req": req}).WithMessage(errormessage.ErrorMsgInvalidInput).WithKind(richerror.KindInvalid)
 	}
 	return nil
