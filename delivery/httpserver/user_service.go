@@ -3,7 +3,6 @@ package httpserver
 import (
 	"game-app/dto"
 	"game-app/pkg/httpmsg"
-	"game-app/service/user"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -28,7 +27,7 @@ func (s Server) userRegister(c echo.Context) error {
 }
 
 func (s Server) userLogin(c echo.Context) error {
-	var req user.LoginRequest
+	var req dto.LoginRequest
 
 	if err := c.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "cant bind request")
@@ -52,7 +51,7 @@ func (s Server) userProfile(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
 	}
 
-	resp, err := s.userSvc.Profile(user.ProfileRequest{UserID: claims.UserID})
+	resp, err := s.userSvc.Profile(dto.ProfileRequest{UserID: claims.UserID})
 	if err != nil {
 		msg, code := httpmsg.HTTPCodeAndMessage(err)
 		return echo.NewHTTPError(code, msg)
