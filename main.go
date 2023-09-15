@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"game-app/config"
 	"game-app/delivery/httpserver"
 	"game-app/repository/migrator"
@@ -8,6 +9,8 @@ import (
 	"game-app/service/authservice"
 	"game-app/service/user"
 	"game-app/validator/uservalidator"
+	"os"
+	"strconv"
 	"time"
 )
 
@@ -19,10 +22,20 @@ const (
 	RefreshTokenExpireDuration = time.Hour * 24 * 7
 )
 
-func main() {
+func GetHTTPServerPort(fallback int) int {
+	portStr := os.Getenv("GAMEAPP_PORT")
+	port, err := strconv.Atoi(portStr)
+	if err != nil {
+		return fallback
+	}
 
+	return port
+}
+func main() {
+	cfg2 := config.Load()
+	fmt.Printf("cfg : %+v", cfg2)
 	cfg := config.Config{
-		HTTPServer: config.HTTPServer{Port: 8088},
+		HTTPServer: config.HTTPServer{Port: GetHTTPServerPort(8088)},
 		Auth: authservice.Config{
 			SignKey:               jwtSignKey,
 			AccessSubject:         AccessTokenSubject,
