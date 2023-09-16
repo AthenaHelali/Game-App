@@ -34,6 +34,7 @@ func GetHTTPServerPort(fallback int) int {
 func main() {
 	cfg2 := config.Load()
 	fmt.Printf("cfg : %+v", cfg2)
+	//merge cfg2 and cfg
 	cfg := config.Config{
 		HTTPServer: config.HTTPServer{Port: GetHTTPServerPort(8088)},
 		Auth: authservice.Config{

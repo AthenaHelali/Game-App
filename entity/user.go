@@ -9,4 +9,5 @@ type User struct {
 	// Password always keeps hashed password
 	Password  string
 	CreatedAt time.Time
+	Role      Role
 }
