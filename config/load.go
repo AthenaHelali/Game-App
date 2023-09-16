@@ -17,8 +17,12 @@ func Load() *Config {
 	k.Load(file.Provider("config.yml"), yaml.Parser())
 
 	k.Load(env.Provider("GAMEAPP_", ".", func(s string) string {
-		return strings.Replace(strings.ToLower(
+		str := strings.Replace(strings.ToLower(
 			strings.TrimPrefix(s, "GAMEAPP_")), "_", ".", -1)
+		//TODO - this is just a workaround
+		//for multiword items such as "sign_key" that we should use like "GAMEAPP_AUTH_SIGN__KEY"
+		//find a better solution if needed
+		return strings.Replace(str, "..", "_", -1)
 	}), nil)
 
 	var cfg Config
