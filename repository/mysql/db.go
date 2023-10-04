@@ -13,7 +13,7 @@ type Config struct {
 	Password string `koanf:"password"`
 	Port     int    `koanf:"port"`
 	Host     string `koanf:"host"`
-	DNName   string `koanf:"DNName"`
+	DBName   string `koanf:"db_name"`
 }
 
 type MysqlDB struct {
@@ -21,8 +21,12 @@ type MysqlDB struct {
 	db     *sql.DB
 }
 
+func (m MysqlDB) Connection() *sql.DB {
+	return m.db
+}
+
 func New(cfg Config) *MysqlDB {
-	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@(%s:%d)/%s?parseTime=true", cfg.Username, cfg.Password, cfg.Host, cfg.Port, cfg.DNName))
+	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@(%s:%d)/%s?parseTime=true", cfg.Username, cfg.Password, cfg.Host, cfg.Port, cfg.DBName))
 
 	if err != nil {
 		panic(fmt.Errorf("can't open mysql db: %v", err))

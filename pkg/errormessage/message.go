@@ -6,4 +6,6 @@ const (
 	ErrorMsgPhoneNumberIsNotUnique = "phone number is not unique"
 	ErrorMsgInvalidInput           = "invalid input"
 	ErrorMsgPhoneNumberIsNotValid  = "phone number is not valid"
+	ErrorMsgSomeThingWentWrong     = "something went wrong"
+	ErrorMsgUserNotAllowed         = "user not allowed"
 )

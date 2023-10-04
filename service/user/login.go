@@ -8,7 +8,7 @@ import (
 )
 
 func (s Service) Login(req param.LoginRequest) (param.LoginResponse, error) {
-	// TODO - it's better to have separate methods for checking user existence and getting user by phone number
+	// TODO - it's better to have separate methods for checking user existence and getting mysqluser by phone number
 	// check the existence of phone number in repository
 	//get the user by phone number
 	const op = "userservice.login"

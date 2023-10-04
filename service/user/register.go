@@ -19,6 +19,7 @@ func (s Service) Register(req param.RegisterRequest) (param.RegisterResponse, er
 		PhoneNumber: req.PhoneNumber,
 		Name:        req.Name,
 		Password:    string(hashedPass),
+		Role:        entity.UserRole,
 	})
 
 	if err != nil {

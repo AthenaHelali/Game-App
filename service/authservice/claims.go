@@ -1,10 +1,14 @@
 package authservice
 
-import "github.com/golang-jwt/jwt/v5"
+import (
+	"game-app/entity"
+	"github.com/golang-jwt/jwt/v5"
+)
 
 type Claims struct {
 	Subject          string
-	UserID           uint
+	UserID           uint        `json:"user_id"`
+	Role             entity.Role `json:"role"`
 	RegisteredClaims jwt.RegisteredClaims
 }
 

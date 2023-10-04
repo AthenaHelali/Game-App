@@ -24,7 +24,7 @@ func New(dbConfig mysql.Config) Migrator {
 }
 
 func (m Migrator) Up() {
-	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@(%s:%d)/%s?parseTime=true", m.dbConfig.Username, m.dbConfig.Password, m.dbConfig.Host, m.dbConfig.Port, m.dbConfig.DNName))
+	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@(%s:%d)/%s?parseTime=true", m.dbConfig.Username, m.dbConfig.Password, m.dbConfig.Host, m.dbConfig.Port, m.dbConfig.DBName))
 	if err != nil {
 		panic(fmt.Errorf("can't open mysql db: %v", err))
 	}
@@ -38,7 +38,7 @@ func (m Migrator) Up() {
 }
 
 func (m Migrator) Down() {
-	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@(%s:%d)/%s?parseTime=true", m.dbConfig.Username, m.dbConfig.Password, m.dbConfig.Host, m.dbConfig.Port, m.dbConfig.DNName))
+	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@(%s:%d)/%s?parseTime=true", m.dbConfig.Username, m.dbConfig.Password, m.dbConfig.Host, m.dbConfig.Port, m.dbConfig.DBName))
 	if err != nil {
 		panic(fmt.Errorf("can't open mysql db: %v", err))
 	}
