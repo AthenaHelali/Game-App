@@ -15,6 +15,7 @@ import (
 	"game-app/validator/uservalidator"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"log"
 )
 
 type Server struct {
@@ -45,5 +46,7 @@ func (s Server) Serve() {
 	s.backofficeUserHandler.SetBackOfficeUerRoutes(e)
 	s.matchingHandler.SetMatchingRoutes(e)
 
-	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", s.config.HTTPServer.Port)))
+	address := fmt.Sprintf(":%d", s.config.HTTPServer.Port)
+	log.Printf("start echo server on %s\n", address)
+	e.Logger.Fatal(e.Start(address))
 }

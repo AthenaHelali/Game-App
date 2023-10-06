@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"game-app/adapter/redis"
 	"game-app/config"
 	"game-app/delivery/httpserver"
@@ -10,6 +9,7 @@ import (
 	"game-app/repository/mysql/mysqlaccesscontrol"
 	"game-app/repository/mysql/mysqluser"
 	"game-app/repository/redis/redismatching"
+	"game-app/scheduler"
 	"game-app/service/authorizationservice"
 	"game-app/service/authservice"
 	"game-app/service/backofficeuserservice"
@@ -17,8 +17,11 @@ import (
 	"game-app/service/user"
 	"game-app/validator/matchingvalidator"
 	"game-app/validator/uservalidator"
+	"log"
 	"os"
+	"os/signal"
 	"strconv"
+	"time"
 )
 
 func GetHTTPServerPort(fallback int) int {
@@ -32,8 +35,7 @@ func GetHTTPServerPort(fallback int) int {
 }
 func main() {
 	cfg := config.Load()
-	fmt.Printf("cfg : %+v", cfg)
-	//merge cfg2 and cfg
+	log.Printf("cfg : %+v", cfg)
 
 	//TODO - add command for migration
 	mgr := migrator.New(cfg.Mysql)
@@ -42,9 +44,26 @@ func main() {
 	// TODO - add struct and add this returned items as struct field
 	authSvc, userSvc, userValidator, backofficeUserSvc, authorizationSvc, matchingValidator, matchingSvc := setupServices(*cfg)
 
-	server := httpserver.New(*cfg, authSvc, userSvc, backofficeUserSvc, authorizationSvc, userValidator, matchingSvc, matchingValidator)
+	go func() {
+		server := httpserver.New(*cfg, authSvc, userSvc, backofficeUserSvc, authorizationSvc, userValidator, matchingSvc, matchingValidator)
 
-	server.Serve()
+		server.Serve()
+	}()
+
+	done := make(chan bool)
+
+	go func() {
+		sch := scheduler.New()
+		sch.Start(done)
+	}()
+
+	terminate := make(chan os.Signal)
+	signal.Notify(terminate)
+	<-terminate
+	log.Printf("received interrupt signal, shutting down gracefully...")
+	done <- true
+	time.Sleep(5 * time.Second)
+
 }
 
 func setupServices(cfg config.Config) (authservice.Service, user.Service, uservalidator.Validator, backofficeuserservice.Service, authorizationservice.Service, matchingvalidator.Validator, matchingservice.Service) {
