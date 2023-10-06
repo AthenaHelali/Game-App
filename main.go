@@ -2,28 +2,23 @@ package main
 
 import (
 	"fmt"
+	"game-app/adapter/redis"
 	"game-app/config"
 	"game-app/delivery/httpserver"
 	"game-app/repository/migrator"
 	"game-app/repository/mysql"
 	"game-app/repository/mysql/mysqlaccesscontrol"
 	"game-app/repository/mysql/mysqluser"
+	"game-app/repository/redis/redismatching"
 	"game-app/service/authorizationservice"
 	"game-app/service/authservice"
 	"game-app/service/backofficeuserservice"
+	"game-app/service/matchingservice"
 	"game-app/service/user"
+	"game-app/validator/matchingvalidator"
 	"game-app/validator/uservalidator"
 	"os"
 	"strconv"
-	"time"
-)
-
-const (
-	jwtSignKey                 = "jwt_secret"
-	AccessTokenSubject         = "ac"
-	RefreshTokenSubject        = "rt"
-	AccessTokenExpireDuration  = time.Hour * 24
-	RefreshTokenExpireDuration = time.Hour * 24 * 7
 )
 
 func GetHTTPServerPort(fallback int) int {
@@ -36,39 +31,23 @@ func GetHTTPServerPort(fallback int) int {
 	return port
 }
 func main() {
-	cfg2 := config.Load()
-	fmt.Printf("cfg : %+v", cfg2)
+	cfg := config.Load()
+	fmt.Printf("cfg : %+v", cfg)
 	//merge cfg2 and cfg
-	cfg := config.Config{
-		HTTPServer: config.HTTPServer{Port: GetHTTPServerPort(8088)},
-		Auth: authservice.Config{
-			SignKey:               jwtSignKey,
-			AccessSubject:         AccessTokenSubject,
-			RefreshSubject:        RefreshTokenSubject,
-			AccessExpirationTime:  AccessTokenExpireDuration,
-			RefreshExpirationTime: RefreshTokenExpireDuration,
-		},
-		Mysql: mysql.Config{
-			Username: "gameapp",
-			Password: "gameappt0lk2o20",
-			Port:     3308,
-			Host:     "localhost",
-			DBName:   "gameapp_db",
-		},
-	}
 
 	//TODO - add command for migration
 	mgr := migrator.New(cfg.Mysql)
 	mgr.Up()
 
-	authSvc, userSvc, userValidator, backofficeUserSvc, authorizationSvc := setupServices(cfg)
+	// TODO - add struct and add this returned items as struct field
+	authSvc, userSvc, userValidator, backofficeUserSvc, authorizationSvc, matchingValidator, matchingSvc := setupServices(*cfg)
 
-	server := httpserver.New(cfg, authSvc, userSvc, backofficeUserSvc, authorizationSvc, userValidator)
+	server := httpserver.New(*cfg, authSvc, userSvc, backofficeUserSvc, authorizationSvc, userValidator, matchingSvc, matchingValidator)
 
 	server.Serve()
 }
 
-func setupServices(cfg config.Config) (authservice.Service, user.Service, uservalidator.Validator, backofficeuserservice.Service, authorizationservice.Service) {
+func setupServices(cfg config.Config) (authservice.Service, user.Service, uservalidator.Validator, backofficeuserservice.Service, authorizationservice.Service, matchingvalidator.Validator, matchingservice.Service) {
 	authSvc := authservice.New(cfg.Auth)
 
 	MysqlRepo := mysql.New(cfg.Mysql)
@@ -84,6 +63,11 @@ func setupServices(cfg config.Config) (authservice.Service, user.Service, userva
 
 	uV := uservalidator.New(userMysql)
 
-	return authSvc, *userSvc, uV, backofficeUserSvc, authorizationSvc
+	matchingV := matchingvalidator.New()
+	redisAdapter := redis.New(cfg.Redis)
+	matchingRepo := redismatching.New(redisAdapter)
+	matchingSvc := matchingservice.New(cfg.MatchingConfig, matchingRepo)
+
+	return authSvc, *userSvc, uV, backofficeUserSvc, authorizationSvc, matchingV, matchingSvc
 
 }
