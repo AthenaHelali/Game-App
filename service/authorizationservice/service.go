@@ -1,6 +1,7 @@
 package authorizationservice
 
 import (
+	"context"
 	"game-app/entity"
 	"game-app/pkg/richerror"
 )
@@ -17,7 +18,7 @@ func New(repo Repository) Service {
 	return Service{repo: repo}
 }
 
-func (s Service) CheckAccess(userID uint, role entity.Role, permissions ...entity.PermissionTitle) (bool, error) {
+func (s Service) CheckAccess(ctx context.Context, userID uint, role entity.Role, permissions ...entity.PermissionTitle) (bool, error) {
 	const op = "authorizationservice.CheckAccess"
 
 	permissionTitles, err := s.repo.GetUserPermissionTitles(userID, role)

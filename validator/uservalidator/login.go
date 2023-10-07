@@ -1,6 +1,7 @@
 package uservalidator
 
 import (
+	"context"
 	"fmt"
 	"game-app/param"
 	"game-app/pkg/errormessage"
@@ -26,7 +27,7 @@ func (v Validator) ValidateLoginRequest(req param.LoginRequest) error {
 func (v Validator) doesPhoneNumberExist(value interface{}) error {
 	phoneNumber := value.(string)
 
-	_, err := v.repo.GetUserByPhoneNumber(phoneNumber)
+	_, err := v.repo.GetUserByPhoneNumber(context.Background(), phoneNumber)
 	if err != nil {
 		return fmt.Errorf(errormessage.ErrorMsgNotFound)
 	}

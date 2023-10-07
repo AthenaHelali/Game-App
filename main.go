@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"game-app/adapter/redis"
 	"game-app/config"
 	"game-app/delivery/httpserver"
@@ -21,7 +22,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
-	"time"
+	"sync"
 )
 
 func GetHTTPServerPort(fallback int) int {
@@ -44,25 +45,38 @@ func main() {
 	// TODO - add struct and add this returned items as struct field
 	authSvc, userSvc, userValidator, backofficeUserSvc, authorizationSvc, matchingValidator, matchingSvc := setupServices(*cfg)
 
+	server := httpserver.New(*cfg, authSvc, userSvc, backofficeUserSvc, authorizationSvc, userValidator, matchingSvc, matchingValidator)
 	go func() {
-		server := httpserver.New(*cfg, authSvc, userSvc, backofficeUserSvc, authorizationSvc, userValidator, matchingSvc, matchingValidator)
-
 		server.Serve()
 	}()
 
 	done := make(chan bool)
+	var wg sync.WaitGroup
 
 	go func() {
-		sch := scheduler.New()
-		sch.Start(done)
+		sch := scheduler.New(matchingSvc)
+		wg.Add(1)
+		sch.Start(done, &wg)
 	}()
 
 	terminate := make(chan os.Signal)
 	signal.Notify(terminate)
 	<-terminate
+
+	ctx := context.Background()
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, cfg.Application.GracefulShutdownTimeout)
+	defer cancel()
+
+	if err := server.Router.Shutdown(ctxWithTimeout); err != nil {
+		log.Printf("httpserver shutdown error")
+	}
+
 	log.Printf("received interrupt signal, shutting down gracefully...")
 	done <- true
-	time.Sleep(5 * time.Second)
+
+	<-ctxWithTimeout.Done()
+
+	wg.Wait()
 
 }
 

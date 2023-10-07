@@ -18,7 +18,7 @@ func (h Handler) userRegister(c echo.Context) error {
 		return echo.NewHTTPError(code, msg)
 	}
 
-	response, err := h.userSvc.Register(uReq)
+	response, err := h.userSvc.Register(c.Request().Context(), uReq)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}

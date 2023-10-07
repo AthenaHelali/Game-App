@@ -1,13 +1,14 @@
 package user
 
 import (
+	"context"
 	"game-app/entity"
 )
 
 type repository interface {
-	RegisterUser(user entity.User) (entity.User, error)
-	GetUserByPhoneNumber(phoneNumber string) (entity.User, error)
-	GetUserByID(UserID uint) (entity.User, error)
+	RegisterUser(ctx context.Context, user entity.User) (entity.User, error)
+	GetUserByPhoneNumber(ctx context.Context, phoneNumber string) (entity.User, error)
+	GetUserByID(ctx context.Context, UserID uint) (entity.User, error)
 }
 type AuthGenerator interface {
 	CreateAccessToken(user entity.User) (string, error)

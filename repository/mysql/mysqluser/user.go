@@ -1,6 +1,7 @@
 package mysqluser
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"game-app/entity"
@@ -9,7 +10,7 @@ import (
 	"game-app/repository/mysql"
 )
 
-func (d *DB) IsPhoneNumberUnique(phoneNumber string) (bool, error) {
+func (d *DB) IsPhoneNumberUnique(ctx context.Context, phoneNumber string) (bool, error) {
 	row := d.conn.Connection().QueryRow(`select * from users where phone_number = ?`, phoneNumber)
 
 	_, err := scanUser(row)
@@ -22,7 +23,7 @@ func (d *DB) IsPhoneNumberUnique(phoneNumber string) (bool, error) {
 	}
 	return false, nil
 }
-func (d *DB) RegisterUser(user entity.User) (entity.User, error) {
+func (d *DB) RegisterUser(ctx context.Context, user entity.User) (entity.User, error) {
 	res, err := d.conn.Connection().Exec(`insert into users(name, phone_number, password, role) values (?, ? , ?, ?)`, user.Name, user.PhoneNumber, user.Password, user.Role.String())
 	if err != nil {
 		return entity.User{}, fmt.Errorf("can't execute command: %W", err)
@@ -35,7 +36,7 @@ func (d *DB) RegisterUser(user entity.User) (entity.User, error) {
 
 }
 
-func (d *DB) GetUserByPhoneNumber(phoneNumber string) (entity.User, error) {
+func (d *DB) GetUserByPhoneNumber(ctx context.Context, phoneNumber string) (entity.User, error) {
 	const op = "mysql.GetUserByPhoneNumber"
 	row := d.conn.Connection().QueryRow(`select * from users where phone_number = ?`, phoneNumber)
 	user, err := scanUser(row)
@@ -52,7 +53,7 @@ func (d *DB) GetUserByPhoneNumber(phoneNumber string) (entity.User, error) {
 	return user, nil
 }
 
-func (d *DB) GetUserByID(UserID uint) (entity.User, error) {
+func (d *DB) GetUserByID(ctx context.Context, UserID uint) (entity.User, error) {
 	const op = "mysql.GetUserByID"
 	row := d.conn.Connection().QueryRow(`select * from users where id = ?`, UserID)
 	user, err := scanUser(row)

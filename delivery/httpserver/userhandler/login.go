@@ -19,7 +19,7 @@ func (h Handler) userLogin(c echo.Context) error {
 		return echo.NewHTTPError(code, msg)
 	}
 
-	response, err := h.userSvc.Login(req)
+	response, err := h.userSvc.Login(c.Request().Context(), req)
 
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())

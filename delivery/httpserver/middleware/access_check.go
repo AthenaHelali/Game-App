@@ -13,7 +13,7 @@ func AccessCheck(service authorizationservice.Service, permissions ...entity.Per
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) (err error) {
 			claims := claim.GetClaimFromEchoContext(c)
-			isAllowed, err := service.CheckAccess(claims.UserID, claims.Role, permissions...)
+			isAllowed, err := service.CheckAccess(c.Request().Context(), claims.UserID, claims.Role, permissions...)
 			if err != nil {
 				return c.JSON(http.StatusInternalServerError, echo.Map{
 					"message": errormessage.ErrorMsgSomeThingWentWrong,

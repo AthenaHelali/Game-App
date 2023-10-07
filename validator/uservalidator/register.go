@@ -1,6 +1,7 @@
 package uservalidator
 
 import (
+	"context"
 	"fmt"
 	"game-app/param"
 	"game-app/pkg/errormessage"
@@ -30,7 +31,7 @@ func (v Validator) ValidateRegisterRequest(req param.RegisterRequest) error {
 func (v Validator) checkPhoneNumberUniqueness(value interface{}) error {
 	phoneNumber := value.(string)
 
-	uniqueness, err := v.repo.IsPhoneNumberUnique(phoneNumber)
+	uniqueness, err := v.repo.IsPhoneNumberUnique(context.Background(), phoneNumber)
 	if err != nil {
 		return fmt.Errorf(errormessage.ErrorMsgNotFound)
 	}

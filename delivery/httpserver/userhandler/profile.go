@@ -9,10 +9,9 @@ import (
 )
 
 func (h Handler) userProfile(c echo.Context) error {
-
 	cl := claim.GetClaimFromEchoContext(c)
 
-	resp, err := h.userSvc.Profile(param.ProfileRequest{UserID: cl.UserID})
+	resp, err := h.userSvc.Profile(c.Request().Context(), param.ProfileRequest{UserID: cl.UserID})
 	if err != nil {
 		msg, code := httpmsg.HTTPCodeAndMessage(err)
 		return echo.NewHTTPError(code, msg)
