@@ -5,6 +5,7 @@ import (
 	"game-app/entity"
 	"game-app/param"
 	"game-app/pkg/richerror"
+	"game-app/pkg/timestamp"
 	"time"
 )
 
@@ -37,6 +38,6 @@ func (s Service) AddToWaitingList(req param.AddToWaitingListRequest) (param.AddT
 }
 
 func (s Service) MatchWaitingUsers(req param.MatchWaitingUsersRequest) (param.MatchWaitingUsersResponse, error) {
-	fmt.Println("matching...", time.Now())
+	fmt.Println("matching...", timestamp.Now())
 	return param.MatchWaitingUsersResponse{}, nil
 }

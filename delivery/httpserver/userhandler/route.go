@@ -12,6 +12,6 @@ func (h Handler) SetUerRoutes(e *echo.Echo) {
 
 	userGroup.POST("/login", h.userLogin)
 
-	userGroup.GET("/profile", h.userProfile, middleware.Auth(h.authSvc, h.authConfig))
+	userGroup.GET("/profile", h.userProfile, middleware.Auth(h.authSvc, h.authConfig), middleware.UpsertPresence(h.presenceSvc))
 
 }

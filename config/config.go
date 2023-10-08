@@ -3,8 +3,10 @@ package config
 import (
 	"game-app/adapter/redis"
 	"game-app/repository/mysql"
+	"game-app/scheduler"
 	"game-app/service/authservice"
 	"game-app/service/matchingservice"
+	"game-app/service/presenceservice"
 	"time"
 )
 
@@ -17,10 +19,12 @@ type HTTPServer struct {
 }
 
 type Config struct {
-	Application    Application            `koanf:"application"`
-	HTTPServer     HTTPServer             `koanf:"http_server"`
-	Auth           authservice.Config     `koanf:"auth"`
-	Mysql          mysql.Config           `koanf:"mysql"`
-	MatchingConfig matchingservice.Config `koanf:"matching_service"`
-	Redis          redis.Config           `koanf:"redis"`
+	Application     Application            `koanf:"application"`
+	HTTPServer      HTTPServer             `koanf:"http_server"`
+	Auth            authservice.Config     `koanf:"auth"`
+	Mysql           mysql.Config           `koanf:"mysql"`
+	MatchingConfig  matchingservice.Config `koanf:"matching_service"`
+	Redis           redis.Config           `koanf:"redis"`
+	PresenceService presenceservice.Config `koanf:"presence_service"`
+	Scheduler       scheduler.Config       `koanf:"scheduler"`
 }
