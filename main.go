@@ -2,24 +2,23 @@ package main
 
 import (
 	"context"
-	"game-app/adapter/redis"
-	"game-app/config"
-	"game-app/delivery/httpserver"
-	"game-app/repository/migrator"
-	"game-app/repository/mysql"
-	"game-app/repository/mysql/mysqlaccesscontrol"
-	"game-app/repository/mysql/mysqluser"
-	"game-app/repository/redis/redismatching"
-	"game-app/repository/redis/redispresence"
-	"game-app/scheduler"
-	"game-app/service/authorizationservice"
-	"game-app/service/authservice"
-	"game-app/service/backofficeuserservice"
-	"game-app/service/matchingservice"
-	"game-app/service/presenceservice"
-	"game-app/service/user"
-	"game-app/validator/matchingvalidator"
-	"game-app/validator/uservalidator"
+	"game-app/internal/adapter/redis"
+	config2 "game-app/internal/config"
+	"game-app/internal/delivery/httpserver"
+	"game-app/internal/repository/mysql"
+	"game-app/internal/repository/mysql/mysqlaccesscontrol"
+	"game-app/internal/repository/mysql/mysqluser"
+	"game-app/internal/repository/redis/redismatching"
+	"game-app/internal/repository/redis/redispresence"
+	"game-app/internal/scheduler"
+	"game-app/internal/service/authorizationservice"
+	"game-app/internal/service/authservice"
+	"game-app/internal/service/backofficeuserservice"
+	"game-app/internal/service/matchingservice"
+	"game-app/internal/service/presenceservice"
+	"game-app/internal/service/user"
+	"game-app/internal/validator/matchingvalidator"
+	"game-app/internal/validator/uservalidator"
 	"log"
 	"os"
 	"os/signal"
@@ -37,12 +36,12 @@ func GetHTTPServerPort(fallback int) int {
 	return port
 }
 func main() {
-	cfg := config.Load()
+	cfg := config2.Load()
 	log.Printf("cfg : %+v", cfg)
 
 	//TODO - add command for migration
-	mgr := migrator.New(cfg.Mysql)
-	mgr.Up()
+	//mgr := migrator.New(cfg.Mysql)
+	//mgr.Up()
 
 	// TODO - add struct and add this returned items as struct field
 	authSvc, userSvc, userValidator, backofficeUserSvc, authorizationSvc, matchingSvc, matchingValidator, presenceSvc := setupServices(*cfg)
@@ -83,7 +82,7 @@ func main() {
 
 }
 
-func setupServices(cfg config.Config) (
+func setupServices(cfg config2.Config) (
 	authservice.Service, user.Service, uservalidator.Validator,
 	backofficeuserservice.Service, authorizationservice.Service,
 	matchingservice.Service, matchingvalidator.Validator,

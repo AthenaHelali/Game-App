@@ -1,0 +1,264 @@
+definitions:
+  entity.User:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      password:
+        description: Password always keeps hashed password
+        type: string
+      phoneNumber:
+        type: string
+      role:
+        type: integer
+    type: object
+  param.AddToWaitingListRequest:
+    properties:
+      category:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  param.AddToWaitingListResponse:
+    properties:
+      timeout_in_nanoseconds:
+        $ref: '#/definitions/time.Duration'
+    type: object
+  param.LoginRequest:
+    properties:
+      password:
+        type: string
+      phone_number:
+        type: string
+    type: object
+  param.LoginResponse:
+    properties:
+      token:
+        $ref: '#/definitions/param.Tokens'
+      user:
+        $ref: '#/definitions/param.UserInfo'
+    type: object
+  param.ProfileResponse:
+    properties:
+      name:
+        type: string
+    type: object
+  param.RegisterRequest:
+    properties:
+      name:
+        type: string
+      password:
+        type: string
+      phone_number:
+        type: string
+    type: object
+  param.RegisterResponse:
+    properties:
+      user:
+        $ref: '#/definitions/param.UserInfo'
+    type: object
+  param.Tokens:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  param.UserInfo:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      phone_number:
+        type: string
+    type: object
+  time.Duration:
+    enum:
+    - -9223372036854775808
+    - 9223372036854775807
+    - 1
+    - 1000
+    - 1000000
+    - 1000000000
+    - 60000000000
+    - 3600000000000
+    type: integer
+    x-enum-varnames:
+    - minDuration
+    - maxDuration
+    - Nanosecond
+    - Microsecond
+    - Millisecond
+    - Second
+    - Minute
+    - Hour
+info:
+  contact: {}
+paths:
+  /api/users/login:
+    post:
+      consumes:
+      - application/json
+      description: Login a user with the provided credentials
+      parameters:
+      - description: User login request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/param.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/param.LoginResponse'
+        "400":
+          description: Bad Request
+          schema: {}
+      summary: Login a user
+      tags:
+      - users
+  /api/users/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user in the system
+      parameters:
+      - description: User registration request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/param.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/param.RegisterResponse'
+        "400":
+          description: Bad Request
+          schema: {}
+      summary: Register a new user
+      tags:
+      - users
+  /backoffice/users/:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all users from the back office.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entity.User'
+            type: array
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "403":
+          description: Forbidden
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: List all users
+      tags:
+      - users
+  /health-check:
+    get:
+      description: Check the health status of the server.
+      operationId: health-check
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+      summary: Health Check
+  /matching/add-to-waiting-list:
+    post:
+      consumes:
+      - application/json
+      description: Add a user to the waiting list for a matching service.
+      parameters:
+      - description: Request body containing user information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/param.AddToWaitingListRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/param.AddToWaitingListResponse'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "403":
+          description: Forbidden
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Add a user to the waiting list
+      tags:
+      - waiting-list
+  /user/profile:
+    get:
+      consumes:
+      - application/json
+      description: Get the user's profile information.
+      operationId: getUserProfile
+      parameters:
+      - description: Authorization header (Bearer token)
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User profile retrieved successfully
+          schema:
+            $ref: '#/definitions/param.ProfileResponse'
+        "400":
+          description: Bad request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: User not found
+          schema: {}
+        "500":
+          description: Internal server error
+          schema: {}
+      summary: Get user profile
+swagger: "2.0"

@@ -28,6 +28,18 @@ services:
       MYSQL_USER: gameapp
       MYSQL_PASSWORD: gameappt0lk2o20
 
+  golang-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gameapp-golang
+    restart: always
+    ports:
+      - '8080:8080'
+    depends_on:
+      - gameapp-database
+
+
 
 volumes:
   dbdata:

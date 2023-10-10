@@ -1,0 +1,13 @@
+package mysqlaccesscontrol
+
+import (
+	"game-app/internal/repository/mysql"
+)
+
+type DB struct {
+	conn *mysql.MysqlDB
+}
+
+func New(conn *mysql.MysqlDB) *DB {
+	return &DB{conn: conn}
+}
